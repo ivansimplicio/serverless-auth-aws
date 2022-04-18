@@ -1,6 +1,8 @@
 import type { AWS } from '@serverless/typescript';
 
 import login from '@functions/login';
+import signup from '@functions/signup';
+import hello from '@functions/hello';
 
 const serverlessConfiguration: AWS = {
   service: 'serverless-auth-aws',
@@ -11,13 +13,13 @@ const serverlessConfiguration: AWS = {
     runtime: 'nodejs14.x',
     iamRoleStatements: [
       {
-        "Effect": "Allow",
-        "Action": [
-          "ec2:CreateNetworkInterface",
-          "ec2:DescribeNetworkInterfaces",
-          "ec2:DeleteNetworkInterface"
+        Effect: "Allow",
+        Action: [
+          "cognito-idp:AdminInitiateAuth",
+          "cognito-idp:AdminCreateUser",
+          "cognito-idp:AdminSetUserPassword"
         ],
-        "Resource": [
+        Resource: [
           "*"
         ]
       }
@@ -27,12 +29,58 @@ const serverlessConfiguration: AWS = {
       shouldStartNameWithService: true,
     },
     environment: {
+      user_pool_id: {
+        Ref: "UserPool"
+      },
+      client_id: {
+        Ref: "UserClient"
+      },
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
     },
   },
   // import the function via paths
-  functions: { login },
+  functions: { login, signup, hello },
+  resources: {
+    Resources: {
+      UserPool: {
+        Type: "AWS::Cognito::UserPool",
+        Properties: {
+          UserPoolName: "serverless-auth-pool",
+          Schema: [
+            {
+              Name: "email",
+              Required: true,
+              Mutable: true
+            }
+          ],
+          Policies: {
+            PasswordPolicy: {
+              MinimumLength: 6
+            }
+          },
+          AutoVerifiedAttributes: [
+            "email"
+          ]
+        }
+      },
+      UserClient: {
+        Type: "AWS::Cognito::UserPoolClient",
+        Properties: {
+          ClientName: "user-pool-ui",
+          GenerateSecret: false,
+          UserPoolId: {
+            Ref: "UserPool"
+          },
+          AccessTokenValidity: 5,
+          IdTokenValidity: 5,
+          ExplicitAuthFlows: [
+            "ADMIN_NO_SRP_AUTH"
+          ]
+        }
+      }
+    }
+  },
   package: { individually: true },
   custom: {
     esbuild: {

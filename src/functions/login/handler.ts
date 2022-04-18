@@ -1,18 +1,28 @@
-import { loadUser } from './../../services/auth-service';
-
-import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
-import { formatJSONResponse } from '@libs/api-gateway';
+import { sendResponse } from './../../libs/util';
 import { middyfy } from '@libs/lambda';
 
-import schema from './schema';
+const AWS = require('aws-sdk')
+const cognito = new AWS.CognitoIdentityServiceProvider()
 
-const login: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
-  const { email, password } = event.body;
-  const accessToken = await loadUser(email, password);
-  if(accessToken){
-    return formatJSONResponse(200, { accessToken });
+const login = async (event) => {
+  try {
+    const { email, password } = event.body
+    const { user_pool_id, client_id } = process.env
+    const params = {
+        AuthFlow: "ADMIN_NO_SRP_AUTH",
+        UserPoolId: user_pool_id,
+        ClientId: client_id,
+        AuthParameters: {
+            USERNAME: email,
+            PASSWORD: password
+        }
+    }
+    const response = await cognito.adminInitiateAuth(params).promise();
+    return sendResponse(200, { message: 'Success', token: response.AuthenticationResult.IdToken })
+  } catch (error) {
+      const message = error.message ? error.message : 'Internal server error'
+      return sendResponse(500, { message })
   }
-  return formatJSONResponse(400, { message: 'invalid credentials' });
 };
 
 export const main = middyfy(login);

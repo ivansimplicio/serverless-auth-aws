@@ -8,7 +8,7 @@ export default {
     {
       http: {
         method: 'post',
-        path: 'login',
+        path: 'signup',
         request: {
           schemas: {
             'application/json': schema,
