@@ -1,5 +1,6 @@
-import { sendResponse } from './../../libs/util';
 import { middyfy } from '@libs/lambda';
+
+import { sendResponse } from './../../libs/util';
 
 const AWS = require('aws-sdk')
 const cognito = new AWS.CognitoIdentityServiceProvider()
@@ -21,7 +22,7 @@ const login = async (event) => {
     return sendResponse(200, { message: 'Success', token: response.AuthenticationResult.IdToken })
   } catch (error) {
       const message = error.message ? error.message : 'Internal server error'
-      return sendResponse(500, { message })
+      return sendResponse(400, { message })
   }
 };
 
