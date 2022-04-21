@@ -8,5 +8,5 @@ export const sendResponse = (statusCode, body) => {
           'Access-Control-Allow-Credentials': true
       }
   }
-  return response
+  return response;
 }

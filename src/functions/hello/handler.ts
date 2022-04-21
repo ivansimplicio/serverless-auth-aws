@@ -4,7 +4,7 @@ import { sendResponse } from './../../libs/util';
 
 const hello = async (event) => {
   const email = event.requestContext.authorizer.claims.email;
-  const message = `Bem-vindo ao serverless ${email}`;
+  const message = `Welcome to serverless, ${email}!`;
   return sendResponse(200, { message })
 };
 
