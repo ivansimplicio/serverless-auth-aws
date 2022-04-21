@@ -33,7 +33,7 @@ const signup = async (event) => {
       };
       await cognito.adminSetUserPassword(paramsForSetPass).promise();
     }
-    return sendResponse(200, { message: 'User registered successfully' });
+    return sendResponse(201, { message: 'User registered successfully' });
   }catch (error) {
     const message = error.message ? error.message : 'Internal server error';
     return sendResponse(400, { message });
